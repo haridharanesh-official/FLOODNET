@@ -18,6 +18,7 @@ class RoadResponse(BaseModel):
     source: str
     updated_at: datetime
     last_observed_at: datetime | None = None
+    geometry: list[list[float]] = Field(default_factory=list)
 
 
 class RoadStatusUpdate(BaseModel):

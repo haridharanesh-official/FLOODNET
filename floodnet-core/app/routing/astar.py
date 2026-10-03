@@ -18,6 +18,8 @@ class RouteSearchResult:
     total_cost: float = 0.0
     contains_caution: bool = False
     contains_unknown: bool = False
+    geometry: list[list[float]] = field(default_factory=list)
+    avoided_flooded_roads: list[str] = field(default_factory=list)
     reason: str | None = None
 
 
@@ -55,13 +57,23 @@ def find_route(
     Find optimal route between origin and destination using A* with dynamic flood weights.
     Flooded edges are completely excluded from search.
     """
+    flooded_road_names = [
+        e.name for e in graph.edges.values() if e.status == RoadStatus.FLOODED
+    ]
+
     if origin_node not in graph.nodes or destination_node not in graph.nodes:
         return RouteSearchResult(
             success=False,
             reason=f"Origin '{origin_node}' or Destination '{destination_node}' not found in road graph.",
+            avoided_flooded_roads=flooded_road_names,
         )
 
     if origin_node == destination_node:
+        origin_obj = graph.nodes[origin_node]
+        geom = []
+        if origin_obj.lat is not None and origin_obj.lng is not None:
+            geom.append([origin_obj.lat, origin_obj.lng])
+
         return RouteSearchResult(
             success=True,
             nodes=[origin_node],
@@ -70,6 +82,8 @@ def find_route(
             total_distance_m=0.0,
             total_travel_time_sec=0.0,
             total_cost=0.0,
+            geometry=geom,
+            avoided_flooded_roads=flooded_road_names,
         )
 
     h_func = heuristic or zero_heuristic
@@ -95,6 +109,34 @@ def find_route(
             has_caution = any(e.status == RoadStatus.CAUTION for e in path_edges)
             has_unknown = any(e.status == RoadStatus.UNKNOWN for e in path_edges)
 
+            # Build continuous polyline geometry
+            route_geometry: list[list[float]] = []
+            for i, edge in enumerate(path_edges):
+                from_n = path_nodes[i]
+                to_n = path_nodes[i + 1]
+
+                if edge.geometry:
+                    if edge.from_node == from_n:
+                        pts = edge.geometry
+                    else:
+                        pts = list(reversed(edge.geometry))
+
+                    for pt in pts:
+                        if not route_geometry or route_geometry[-1] != pt:
+                            route_geometry.append(pt)
+                else:
+                    n_obj = graph.nodes.get(from_n)
+                    if n_obj and n_obj.lat is not None and n_obj.lng is not None:
+                        pt = [n_obj.lat, n_obj.lng]
+                        if not route_geometry or route_geometry[-1] != pt:
+                            route_geometry.append(pt)
+
+            dest_obj = graph.nodes.get(destination_node)
+            if dest_obj and dest_obj.lat is not None and dest_obj.lng is not None:
+                pt = [dest_obj.lat, dest_obj.lng]
+                if not route_geometry or route_geometry[-1] != pt:
+                    route_geometry.append(pt)
+
             return RouteSearchResult(
                 success=True,
                 nodes=path_nodes,
@@ -105,6 +147,8 @@ def find_route(
                 total_cost=g,
                 contains_caution=has_caution,
                 contains_unknown=has_unknown,
+                geometry=route_geometry,
+                avoided_flooded_roads=flooded_road_names,
             )
 
         # If we already found a strictly better path to current_node, skip
@@ -141,4 +185,5 @@ def find_route(
     return RouteSearchResult(
         success=False,
         reason="All available paths contain confirmed flooded road segments.",
+        avoided_flooded_roads=flooded_road_names,
     )

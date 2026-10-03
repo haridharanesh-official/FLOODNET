@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.routing.route_manager import route_manager
 from app.schemas.road import RoadResponse, RoadStatusUpdate
 from app.services.roads import list_roads, update_road_status
 from app.websocket.manager import manager
@@ -11,7 +12,15 @@ router = APIRouter(prefix="/api/v1/roads", tags=["roads"])
 
 @router.get("", response_model=list[RoadResponse])
 async def get_roads(db: AsyncSession = Depends(get_db)):
-    return await list_roads(db)
+    roads = await list_roads(db)
+    result = []
+    for r in roads:
+        res = RoadResponse.model_validate(r)
+        edge = route_manager.graph.get_edge(r.road_code)
+        if edge and edge.geometry:
+            res.geometry = edge.geometry
+        result.append(res)
+    return result
 
 
 @router.post("/{road_code}/status", response_model=RoadResponse)
@@ -34,18 +43,25 @@ async def set_road_status(
         raise HTTPException(status_code=404, detail="Road not found")
 
     # 1. Broadcast road state change
+    edge = route_manager.graph.get_edge(road.road_code)
+    road_geom = edge.geometry if edge else []
+
     await manager.broadcast({
         "type": "road.status.changed",
         "road_id": road.road_code,
+        "road_name": road.name,
         "previous_status": old_status.value if old_status else None,
         "new_status": road.status.value,
         "confidence": road.confidence,
         "source": road.source,
         "updated_at": road.updated_at.isoformat(),
+        "geometry": road_geom,
     })
 
     # 2. Broadcast any reroute events (route.recalculated or route.unavailable)
     for event in reroute_events:
         await manager.broadcast(event)
 
-    return road
+    res = RoadResponse.model_validate(road)
+    res.geometry = road_geom
+    return res

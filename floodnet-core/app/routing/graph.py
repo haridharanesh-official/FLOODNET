@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -9,8 +10,20 @@ from app.routing.weights import calculate_dynamic_weight
 class RoadNode:
     node_id: str
     name: str | None = None
+    lat: float | None = None
+    lng: float | None = None
     x: float | None = None  # Geographic longitude or X coordinate
     y: float | None = None  # Geographic latitude or Y coordinate
+
+    def __post_init__(self) -> None:
+        if self.lat is not None and self.y is None:
+            self.y = self.lat
+        if self.lng is not None and self.x is None:
+            self.x = self.lng
+        if self.y is not None and self.lat is None:
+            self.lat = self.y
+        if self.x is not None and self.lng is None:
+            self.lng = self.x
 
 
 @dataclass
@@ -27,6 +40,7 @@ class RoadEdge:
     source: str = "SYSTEM"
     last_observed_at: datetime | None = None
     bidirectional: bool = True
+    geometry: list[list[float]] = field(default_factory=list)  # list of [lat, lng]
 
     @property
     def base_weight(self) -> float:
@@ -51,6 +65,7 @@ class RoadEdge:
             "flood_coverage": self.flood_coverage,
             "last_observed_at": self.last_observed_at.isoformat() if self.last_observed_at else None,
             "source": self.source,
+            "geometry": self.geometry,
         }
 
 
@@ -72,10 +87,29 @@ class RoadGraph:
         name: str | None = None,
         x: float | None = None,
         y: float | None = None,
+        lat: float | None = None,
+        lng: float | None = None,
     ) -> RoadNode:
         if node_id not in self.nodes:
-            self.nodes[node_id] = RoadNode(node_id=node_id, name=name, x=x, y=y)
+            self.nodes[node_id] = RoadNode(
+                node_id=node_id,
+                name=name,
+                x=x,
+                y=y,
+                lat=lat,
+                lng=lng,
+            )
             self.adjacency[node_id] = []
+        else:
+            node = self.nodes[node_id]
+            if name and not node.name:
+                node.name = name
+            if lat is not None:
+                node.lat = lat
+                node.y = lat
+            if lng is not None:
+                node.lng = lng
+                node.x = lng
         return self.nodes[node_id]
 
     def add_edge(self, edge: RoadEdge) -> None:
@@ -99,6 +133,18 @@ class RoadGraph:
     def get_outgoing_edges(self, node_id: str) -> list[tuple[str, RoadEdge]]:
         """Return list of (target_node_id, edge) for a given node."""
         return self.adjacency.get(node_id, [])
+
+    def get_closest_node(self, lat: float, lng: float) -> RoadNode | None:
+        """Find the nearest graph node to given coordinates."""
+        best_node = None
+        best_dist = float("inf")
+        for node in self.nodes.values():
+            if node.lat is not None and node.lng is not None:
+                dist = math.hypot(node.lat - lat, node.lng - lng)
+                if dist < best_dist:
+                    best_dist = dist
+                    best_node = node
+        return best_node
 
     def update_edge_status(
         self,
@@ -147,7 +193,6 @@ class RoadGraph:
                 last_observed_at=r.last_observed_at,
                 bidirectional=True,
             )
-            # If already exists, update properties; else add
             if r.road_code in self.edges:
                 existing = self.edges[r.road_code]
                 existing.status = r.status
@@ -157,5 +202,6 @@ class RoadGraph:
                 existing.travel_time_sec = r.travel_time_sec
                 existing.source = r.source
                 existing.last_observed_at = r.last_observed_at
+                existing.name = r.name
             else:
                 self.add_edge(edge)

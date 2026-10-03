@@ -1,198 +1,605 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 :root {
   color-scheme: dark;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #071018;
-  color: #f4f7fa;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --bg-dark: #090d16;
+  --surface-dark: rgba(15, 23, 42, 0.88);
+  --surface-card: #0f172a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #0284c7;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-body {
+html, body {
   margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, rgba(22, 85, 120, .35), transparent 34rem),
-    #071018;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
 }
 
-button { font: inherit; }
-
-main {
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 48px 0 80px;
+/* Full viewport map container */
+.mapViewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-header, .panelHeading, .road, .roadActions {
+/* Floating Top Navigation Bar */
+.topNav {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 30;
   display: flex;
   align-items: center;
-}
-
-header {
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 30px;
+  gap: 16px;
+  pointer-events: none;
 }
 
-h1, h2, h3, p { margin-top: 0; }
-
-h1 { font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 10px; }
-h2 { margin-bottom: 0; }
-h3 { margin-bottom: 7px; }
-
-.eyebrow {
-  margin-bottom: 8px;
-  letter-spacing: .18em;
-  font-size: .74rem;
-  font-weight: 700;
-  color: #88a8bb;
+.topNav > * {
+  pointer-events: auto;
 }
 
-.subtitle, .meta { color: #9fb3c0; }
-
-.pill, .status {
-  border: 1px solid #294656;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: .75rem;
-  font-weight: 800;
-  letter-spacing: .07em;
-}
-
-.online, .safe, .open { background: rgba(20, 138, 92, .15); color: #4ade80; border-color: rgba(34, 197, 94, .3); }
-.offline, .blocked, .flooded { background: rgba(190, 55, 55, .22); color: #f87171; border-color: rgba(239, 68, 68, .35); }
-.caution { background: rgba(194, 142, 40, .17); color: #facc15; border-color: rgba(234, 179, 8, .3); }
-.unknown { background: rgba(120, 130, 140, .15); color: #94a3b8; border-color: rgba(148, 163, 184, .25); }
-
-.routeBox {
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(6, 15, 23, 0.85);
-  border: 1px solid #1b384a;
-  border-radius: 14px;
-}
-
-.routeInputs {
+.brandPill {
   display: flex;
-  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 18px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.brandLogo {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brandTag {
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 9999px;
+}
+
+/* Search and Route Selector Box */
+.searchBarWrapper {
+  flex: 1;
+  max-width: 600px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.searchBarWrapper:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: #64748b;
+}
+
+.searchIcon {
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.nodeSelectDropdown {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.navActionBtn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.navActionBtn:hover:not(:disabled) {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.navActionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Minimal Top Menu */
+.topMenu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topMenuBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.topMenuBtn:hover {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* Real-Time Live Status Pill */
+.liveStatusPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.liveDot.online {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.liveDot.offline {
+  background: #ef4444;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Real-Time Flood Detection Alert Banners */
+.alertBannerWrapper {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  width: min(620px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+  animation: slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translate(-50%, -15px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.floodAheadAlert {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 15px 30px rgba(220, 38, 38, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.recalculatedAlert {
+  background: linear-gradient(135deg, rgba(3, 105, 161, 0.95), rgba(2, 132, 199, 0.95));
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 15px 30px rgba(2, 132, 199, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.noRouteAlert {
+  background: linear-gradient(135deg, rgba(153, 27, 27, 0.95), rgba(127, 29, 29, 0.95));
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(185, 28, 28, 0.45);
+  border: 2px solid #ef4444;
+}
+
+/* Floating Bottom Route Panel */
+.bottomRoutePanel {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(720px, calc(100% - 32px));
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.routePanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.destTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.originSubtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.routeMetricsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px 16px;
   margin-bottom: 16px;
 }
 
-.routeInputs input, .routeInputs select {
-  background: #0d1e29;
-  border: 1px solid #24465a;
-  color: #fff;
+.metricItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.metricLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* Flooded Road Avoided Highlight Pill */
+.avoidedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  margin-bottom: 14px;
+}
+
+/* Road Segments Breadcrumb */
+.roadBreadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+  background: rgba(2, 6, 23, 0.4);
   padding: 8px 12px;
   border-radius: 8px;
-  font-family: inherit;
-  font-size: 0.9rem;
 }
 
-.routeCard {
-  margin-top: 12px;
-  padding: 16px;
-  background: #0c1a24;
-  border: 1px solid #204154;
-  border-radius: 10px;
+.roadBreadcrumbItem {
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
-.routePath {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #38bdf8;
-  margin-bottom: 8px;
+.roadBreadcrumbSeparator {
+  color: #64748b;
+  font-size: 0.75rem;
 }
 
-.routeMeta {
+/* Start Navigation Button */
+.startNavButton {
+  width: 100%;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
   display: flex;
-  gap: 20px;
-  color: #94a3b8;
-  font-size: 0.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.4);
+  transition: all 0.2s ease;
+}
+
+.startNavButton:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(2, 132, 199, 0.5);
+}
+
+.startNavButton.active {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================
+   ADMIN & SIMULATOR PAGES STYLING
+   ========================================================== */
+.adminLayout {
+  min-height: 100vh;
+  background: #090d16;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.adminHeader {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.adminNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.routeAlert {
-  padding: 10px 14px;
+.adminTabLink {
+  padding: 8px 16px;
   border-radius: 8px;
-  margin-top: 10px;
   font-size: 0.85rem;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #7dd3fc;
+  font-weight: 600;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.routeUnavailable {
-  color: #f87171;
-  font-weight: 800;
-  font-size: 1.1rem;
+.adminTabLink:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+.adminTabLink.active {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.adminContent {
+  width: min(1200px, calc(100% - 32px));
+  margin: 32px auto 64px;
+  flex: 1;
+}
+
+.adminCard {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 24px;
 }
 
-.stats article, .panel {
-  border: 1px solid #1b3545;
-  background: rgba(11, 27, 37, .78);
-  border-radius: 18px;
+.adminGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
 }
 
-.stats article { padding: 22px; }
-.stats strong { display: block; font-size: 2rem; }
-.stats span { color: #93aaba; }
-
-.panel { padding: 24px; }
-.panelHeading { justify-content: space-between; margin-bottom: 18px; }
-
-.roads { display: grid; gap: 12px; }
-
-.road {
-  justify-content: space-between;
-  gap: 20px;
-  padding: 18px;
-  border: 1px solid #173444;
-  border-radius: 14px;
-  background: rgba(8, 19, 27, .72);
+.roadCard {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.code { color: #5f92ad; font: 700 .75rem ui-monospace, monospace; margin-bottom: 5px; }
+.roadCard.flooded {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(15, 23, 42, 0.95));
+}
 
-.roadActions {
-  justify-content: flex-end;
-  gap: 14px;
+.roadCard.caution {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.statusBtnGroup {
+  display: flex;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
-.buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-
-button {
+.statusBtn {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #cbd5e1;
   cursor: pointer;
-  color: #dce9f0;
-  background: #102938;
-  border: 1px solid #26495c;
-  border-radius: 8px;
-  padding: 8px 10px;
+  transition: all 0.15s ease;
 }
 
-button:hover { background: #17384a; }
-
-.secondary { padding: 9px 14px; }
-
-.error {
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  border: 1px solid #733;
-  border-radius: 12px;
-  background: rgba(120, 20, 20, .2);
+.statusBtn:hover {
+  background: #334155;
+  color: #ffffff;
 }
 
-@media (max-width: 760px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  header, .road { align-items: flex-start; flex-direction: column; }
-  .roadActions { justify-content: flex-start; }
+.statusBtn.active-open {
+  background: #059669;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.statusBtn.active-caution {
+  background: #d97706;
+  border-color: #f59e0b;
+  color: #ffffff;
+}
+
+.statusBtn.active-flooded {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.statusBtn.active-unknown {
+  background: #475569;
+  border-color: #64748b;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .topNav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchBarWrapper {
+    max-width: 100%;
+  }
+  .bottomRoutePanel {
+    bottom: 12px;
+    padding: 16px;
+  }
 }

@@ -36,16 +36,28 @@ class RouteManager:
 
         route_id = self.next_route_id()
         now = datetime.now(timezone.utc)
+
+        origin_obj = self.graph.get_node(origin_node)
+        dest_obj = self.graph.get_node(destination_node)
+        origin_name = origin_obj.name if origin_obj and origin_obj.name else origin_node
+        dest_name = dest_obj.name if dest_obj and dest_obj.name else destination_node
+        road_names = [self.graph.edges[r].name for r in result.roads if r in self.graph.edges]
+
         active_route = ActiveRoute(
             route_id=route_id,
             origin_node=origin_node,
             destination_node=destination_node,
+            origin_name=origin_name,
+            destination_name=dest_name,
             road_ids=result.roads,
+            road_names=road_names,
             node_ids=result.nodes,
             total_distance_m=result.total_distance_m,
             estimated_time_sec=result.total_travel_time_sec,
             risk_cost=result.total_cost,
             status="ACTIVE",
+            geometry=result.geometry,
+            avoided_flooded_roads=result.avoided_flooded_roads,
             created_at=now,
             updated_at=now,
         )
@@ -82,6 +94,8 @@ class RouteManager:
         self.graph.update_edge_status(road_id=road_id, status=new_status)
 
         events: list[dict[str, Any]] = []
+        blocked_edge = self.graph.get_edge(road_id)
+        blocked_name = blocked_edge.name if blocked_edge else road_id
 
         # 2. Check all active routes
         for route in list(self.active_routes.values()):
@@ -100,10 +114,13 @@ class RouteManager:
                     if alt_result.success:
                         # Alternative route found! Replace active route
                         route.road_ids = alt_result.roads
+                        route.road_names = [self.graph.edges[r].name for r in alt_result.roads if r in self.graph.edges]
                         route.node_ids = alt_result.nodes
                         route.total_distance_m = alt_result.total_distance_m
                         route.estimated_time_sec = alt_result.total_travel_time_sec
                         route.risk_cost = alt_result.total_cost
+                        route.geometry = alt_result.geometry
+                        route.avoided_flooded_roads = alt_result.avoided_flooded_roads
                         route.status = "ACTIVE"
                         route.updated_at = datetime.now(timezone.utc)
 
@@ -112,10 +129,14 @@ class RouteManager:
                             "route_id": route.route_id,
                             "reason": "FLOODED_ROAD",
                             "blocked_road": road_id,
+                            "blocked_road_name": blocked_name,
                             "old_path": old_path,
                             "new_path": route.road_ids,
+                            "new_path_names": route.road_names,
                             "old_eta_sec": old_eta,
                             "new_eta_sec": route.estimated_time_sec,
+                            "geometry": route.geometry,
+                            "avoided_flooded_roads": route.avoided_flooded_roads,
                         })
                     else:
                         # No valid route available
@@ -127,6 +148,7 @@ class RouteManager:
                             "route_id": route.route_id,
                             "reason": "NO_VERIFIED_ROUTE",
                             "blocked_road": road_id,
+                            "blocked_road_name": blocked_name,
                         })
 
                 elif new_status in (RoadStatus.CAUTION, RoadStatus.UNKNOWN):
@@ -146,10 +168,13 @@ class RouteManager:
                         old_eta = route.estimated_time_sec
 
                         route.road_ids = alt_result.roads
+                        route.road_names = [self.graph.edges[r].name for r in alt_result.roads if r in self.graph.edges]
                         route.node_ids = alt_result.nodes
                         route.total_distance_m = alt_result.total_distance_m
                         route.estimated_time_sec = alt_result.total_travel_time_sec
                         route.risk_cost = alt_result.total_cost
+                        route.geometry = alt_result.geometry
+                        route.avoided_flooded_roads = alt_result.avoided_flooded_roads
                         route.status = "ACTIVE"
                         route.updated_at = datetime.now(timezone.utc)
 
@@ -158,15 +183,17 @@ class RouteManager:
                             "route_id": route.route_id,
                             "reason": f"{new_status.value}_ROAD_PENALTY",
                             "blocked_road": road_id,
+                            "blocked_road_name": blocked_name,
                             "old_path": old_path,
                             "new_path": route.road_ids,
+                            "new_path_names": route.road_names,
                             "old_eta_sec": old_eta,
                             "new_eta_sec": route.estimated_time_sec,
+                            "geometry": route.geometry,
+                            "avoided_flooded_roads": route.avoided_flooded_roads,
                         })
             else:
                 # Road is NOT part of current active route.
-                # If a route was previously marked NO_VERIFIED_ROUTE and road became OPEN,
-                # check if it can now be restored.
                 if route.status == "NO_VERIFIED_ROUTE" and new_status == RoadStatus.OPEN:
                     recovered = find_route(
                         self.graph, route.origin_node, route.destination_node
@@ -176,10 +203,13 @@ class RouteManager:
                         old_eta = route.estimated_time_sec
 
                         route.road_ids = recovered.roads
+                        route.road_names = [self.graph.edges[r].name for r in recovered.roads if r in self.graph.edges]
                         route.node_ids = recovered.nodes
                         route.total_distance_m = recovered.total_distance_m
                         route.estimated_time_sec = recovered.total_travel_time_sec
                         route.risk_cost = recovered.total_cost
+                        route.geometry = recovered.geometry
+                        route.avoided_flooded_roads = recovered.avoided_flooded_roads
                         route.status = "ACTIVE"
                         route.updated_at = datetime.now(timezone.utc)
 
@@ -188,10 +218,14 @@ class RouteManager:
                             "route_id": route.route_id,
                             "reason": "ROAD_REOPENED",
                             "blocked_road": road_id,
+                            "blocked_road_name": blocked_name,
                             "old_path": old_path,
                             "new_path": route.road_ids,
+                            "new_path_names": route.road_names,
                             "old_eta_sec": old_eta,
                             "new_eta_sec": route.estimated_time_sec,
+                            "geometry": route.geometry,
+                            "avoided_flooded_roads": route.avoided_flooded_roads,
                         })
 
         return events
