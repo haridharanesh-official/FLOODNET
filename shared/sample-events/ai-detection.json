@@ -1,0 +1,9 @@
+{
+  "camera_id": "CAM_002",
+  "road_id": "ROAD_002",
+  "flood_detected": true,
+  "flood_coverage": 0.61,
+  "confidence": 0.95,
+  "status": "BLOCKED",
+  "timestamp": "2026-10-03T21:20:00+05:30"
+}

@@ -1,0 +1,198 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #071018;
+  color: #f4f7fa;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(22, 85, 120, .35), transparent 34rem),
+    #071018;
+}
+
+button { font: inherit; }
+
+main {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+header, .panelHeading, .road, .roadActions {
+  display: flex;
+  align-items: center;
+}
+
+header {
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+h1, h2, h3, p { margin-top: 0; }
+
+h1 { font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 10px; }
+h2 { margin-bottom: 0; }
+h3 { margin-bottom: 7px; }
+
+.eyebrow {
+  margin-bottom: 8px;
+  letter-spacing: .18em;
+  font-size: .74rem;
+  font-weight: 700;
+  color: #88a8bb;
+}
+
+.subtitle, .meta { color: #9fb3c0; }
+
+.pill, .status {
+  border: 1px solid #294656;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+
+.online, .safe, .open { background: rgba(20, 138, 92, .15); color: #4ade80; border-color: rgba(34, 197, 94, .3); }
+.offline, .blocked, .flooded { background: rgba(190, 55, 55, .22); color: #f87171; border-color: rgba(239, 68, 68, .35); }
+.caution { background: rgba(194, 142, 40, .17); color: #facc15; border-color: rgba(234, 179, 8, .3); }
+.unknown { background: rgba(120, 130, 140, .15); color: #94a3b8; border-color: rgba(148, 163, 184, .25); }
+
+.routeBox {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(6, 15, 23, 0.85);
+  border: 1px solid #1b384a;
+  border-radius: 14px;
+}
+
+.routeInputs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.routeInputs input, .routeInputs select {
+  background: #0d1e29;
+  border: 1px solid #24465a;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.routeCard {
+  margin-top: 12px;
+  padding: 16px;
+  background: #0c1a24;
+  border: 1px solid #204154;
+  border-radius: 10px;
+}
+
+.routePath {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 8px;
+}
+
+.routeMeta {
+  display: flex;
+  gap: 20px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.routeAlert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #7dd3fc;
+}
+
+.routeUnavailable {
+  color: #f87171;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stats article, .panel {
+  border: 1px solid #1b3545;
+  background: rgba(11, 27, 37, .78);
+  border-radius: 18px;
+}
+
+.stats article { padding: 22px; }
+.stats strong { display: block; font-size: 2rem; }
+.stats span { color: #93aaba; }
+
+.panel { padding: 24px; }
+.panelHeading { justify-content: space-between; margin-bottom: 18px; }
+
+.roads { display: grid; gap: 12px; }
+
+.road {
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid #173444;
+  border-radius: 14px;
+  background: rgba(8, 19, 27, .72);
+}
+
+.code { color: #5f92ad; font: 700 .75rem ui-monospace, monospace; margin-bottom: 5px; }
+
+.roadActions {
+  justify-content: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+
+button {
+  cursor: pointer;
+  color: #dce9f0;
+  background: #102938;
+  border: 1px solid #26495c;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+button:hover { background: #17384a; }
+
+.secondary { padding: 9px 14px; }
+
+.error {
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: 1px solid #733;
+  border-radius: 12px;
+  background: rgba(120, 20, 20, .2);
+}
+
+@media (max-width: 760px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  header, .road { align-items: flex-start; flex-direction: column; }
+  .roadActions { justify-content: flex-start; }
+}
